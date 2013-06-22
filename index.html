@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" class="no-js">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <title>Web Audio Stylophone - Recreating the classic miniature synthesizer with the Web Audio API</title>
+        <meta name="description" content="Web Audio Stylophone - Recreating the classic miniature synthesizer with the Web Audio API" />
+        <meta name="keywords" content="stylophone, web audio api, javascript, tutorial, html5, instrument" />
+        <meta name="author" content="Stuart Memo" />
+        <link rel="shortcut icon" href="../favicon.ico"> 
+        <link rel="stylesheet" type="text/css" href="css/default.css" />
+        <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <script src="js/modernizr.custom.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Top Navigation -->
+            <div class="codrops-top clearfix">
+                <a class="codrops-icon codrops-icon-prev" href="http://tympanus.net/Development/IconHoverEffects/"><span>Previous Demo</span></a>
+                <span class="right"><a class="codrops-icon codrops-icon-drop" href="http://tympanus.net/codrops/?p=15361"><span>Back to the Codrops Article</span></a></span>
+            </div>
+            <header>
+                <h1>Web Audio Stylophone<span>Recreating the classic miniature synthesizer with the Web Audio API</span></h1>
+            </header>
+            <div class="main clearfix">
+                <div class="stylophone">
+                    <h1>Stylophone</h1>
+                    <div class="speaker"></div>
+                    <div id="keyboard"></div>
+                </div>
+            </div>
+            <p class="support">Blink/Webkit support only at the moment.</p>
+        </div>
+
+        <script src="js/raphael-min.js"></script>
+        <script src="js/qwerty-hancock.js"></script>
+        <script>
+            // Create Web Audio Context.
+            var context = new webkitAudioContext(),
+                currentOscillator;
+
+            // Create keyboard using Qwerty Hancock.
+            var keyboard = qwertyHancock(
+                {
+                     id: 'keyboard',
+                     height: 100,
+                     width: 568,
+                     startNote: 'A2',
+                     octaves: 1.7,
+                     whiteKeyColour: '#eee',
+                     blackKeyColour: '#ddd',
+                     blackKeyWidth: 40,
+                     blackKeyHeight: 60,
+                     hoverColour: 'silver',
+                     keyboardLayout: 'en'
+                }
+            );
+
+            var playNote = function (frequency) {
+                // Create oscillator and gain node.
+                var oscillator = context.createOscillator(),
+                    gainNode = context.createGainNode();
+
+                // Disconnect existing oscillator if there is one.
+                if (currentOscillator) {
+                	currentOscillator.disconnect();
+                }
+
+                // Set the type and frequency of the oscillator.
+                oscillator.type = oscillator.SQUARE;
+                oscillator.frequency.value = frequency;
+
+                // Set volume of the oscillator.
+                gainNode.gain.value = 0.3;
+
+                // Route oscillator through gain node to speakers.
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+ 
+                // Set the current oscillator to the one we've just created.
+                currentOscillator = oscillator;
+
+                // Start oscillator playing.
+                oscillator.noteOn(0); // This will be replaced by start() soon.
+            };
+
+            var stopNote = function () {
+                // Stop the current Oscillator from playing then disconnect it.
+                currentOscillator.noteOff(0); // This will be replace by stop() soon.
+                currentOscillator.disconnect();
+            };
+
+            // On-screen key down event.
+            keyboard.keyDown(function (note, frequency) {
+                playNote(frequency);
+            });
+
+            // On-screen key up event.
+            keyboard.keyUp(function (note, frequency) {
+                stopNote();
+            });
+
+        </script>
+    </body>
+</html>
